@@ -1,37 +1,48 @@
-import pandas as pd
 import numpy as np
 from scipy.spatial.distance import minkowski
 
-file = "Lab Session Data.xlsx"
-sheet = "marketing_campaign"
+def my_minkowski_distance(A, B, p):
 
-df = pd.read_excel(file, sheet_name=sheet)
+    A = np.asarray(A, dtype=float)
+    B = np.asarray(B, dtype=float)
 
-for col in df.select_dtypes(include=["object"]).columns:
-    df[col] = pd.factorize(df[col])[0]
-
-
-def minkowski_distance(x, y, p):
-
-    x = np.array(x)
-    y = np.array(y)
-
-    return np.sum(np.abs(x - y) ** p) ** (1 / p)
+    return (
+        np.sum(np.abs(A - B) ** p)
+    ) ** (1 / p)
 
 
-vector1 = df.iloc[0].values
-vector2 = df.iloc[1].values
+A = np.array([1, 2, 3, 4])
+B = np.array([5, 6, 7, 8])
+
+
+print(
+    "p\tMy Function\tSciPy\tDifference"
+)
 
 for p in range(1, 11):
 
-    my_distance = minkowski_distance(vector1, vector2, p)
+    own_result = my_minkowski_distance(
+        A,
+        B,
+        p
+    )
 
-    scipy_distance = minkowski(vector1, vector2, p)
+    scipy_result = minkowski(
+        A,
+        B,
+        p=p
+    )
 
-    print(f"p = {p}")
+    difference = abs(
+        own_result - scipy_result
+    )
 
-    print("My Function :", my_distance)
-
-    print("Scipy       :", scipy_distance)
-
-    print()
+    print(
+        p,
+        "\t",
+        own_result,
+        "\t",
+        scipy_result,
+        "\t",
+        difference
+    )

@@ -1,24 +1,36 @@
-import pandas as pd
 import numpy as np
 
-file = "Lab Session Data.xlsx"
-sheet = "marketing_campaign"
+def minkowski_distance(A, B, p):
 
-df = pd.read_excel(file, sheet_name=sheet)
+    A = np.asarray(A, dtype=float)
+    B = np.asarray(B, dtype=float)
 
-for col in df.select_dtypes(include=["object"]).columns:
-    df[col] = pd.factorize(df[col])[0]
+    if len(A) != len(B):
+        raise ValueError(
+            "Vectors must have the same dimensions."
+        )
 
-def minkowski_distance(x, y, p):
+    if p <= 0:
+        raise ValueError(
+            "Order p must be greater than zero."
+        )
 
-    x = np.array(x)
-    y = np.array(y)
-
-    distance = np.sum(np.abs(x - y) ** p) ** (1 / p)
+    distance = (
+        np.sum(np.abs(A - B) ** p)
+    ) ** (1 / p)
 
     return distance
 
-vector1 = df.iloc[0].values
-vector2 = df.iloc[1].values
 
-print(minkowski_distance(vector1, vector2, 2))
+A = np.array([1, 2, 3])
+B = np.array([4, 6, 8])
+
+print(
+    "Manhattan Distance:",
+    minkowski_distance(A, B, 1)
+)
+
+print(
+    "Euclidean Distance:",
+    minkowski_distance(A, B, 2)
+)

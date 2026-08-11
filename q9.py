@@ -1,44 +1,86 @@
-import pandas as pd
 import numpy as np
+import pandas as pd
+
+def calculate_mean(data):
+
+    return np.sum(data) / len(data)
+
+
+def calculate_standard_deviation(data):
+
+    mean = calculate_mean(data)
+
+    variance = (
+        np.sum((data - mean) ** 2)
+        / len(data)
+    )
+
+    return np.sqrt(variance)
+
 
 file = "Lab Session Data.xlsx"
 sheet = "marketing_campaign"
 
 df = pd.read_excel(file, sheet_name=sheet)
 
-for col in df.select_dtypes(include=["object"]).columns:
-    df[col] = pd.factorize(df[col])[0]
+numeric_df = df.select_dtypes(
+    include=np.number
+).dropna()
 
-data = df.select_dtypes(include=np.number)
+X = numeric_df.values
 
-def my_mean(values):
-    return sum(values) / len(values)
+own_mean = []
 
-def my_variance(values):
-    mean = my_mean(values)
+own_std = []
 
-    total = 0
+for i in range(X.shape[1]):
 
-    for value in values:
-        total += (value - mean) ** 2
+    column = X[:, i]
 
-    return total / len(values)
+    own_mean.append(
+        calculate_mean(column)
+    )
 
-def my_std(values):
-    return my_variance(values) ** 0.5
+    own_std.append(
+        calculate_standard_deviation(column)
+    )
 
-print("Comparison\n")
+numpy_mean = np.mean(
+    X,
+    axis=0
+)
 
-for column in data.columns:
+numpy_std = np.std(
+    X,
+    axis=0
+)
 
-    values = data[column].values
 
-    print(column)
+print("Feature\t\tMy Mean\t\tNumPy Mean")
 
-    print("Own Mean      :", my_mean(values))
-    print("NumPy Mean    :", np.mean(values))
+for i, column in enumerate(
+    numeric_df.columns
+):
 
-    print("Own Std Dev   :", my_std(values))
-    print("NumPy Std Dev :", np.std(values))
+    print(
+        column,
+        "\t",
+        own_mean[i],
+        "\t",
+        numpy_mean[i]
+    )
 
-    print()
+
+print("\n\nFeature\t\tMy Std\t\tNumPy Std")
+
+for i, column in enumerate(
+    numeric_df.columns
+):
+
+    print(
+        column,
+        "\t",
+        own_std[i],
+        "\t",
+        numpy_std[i]
+    )

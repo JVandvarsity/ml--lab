@@ -1,62 +1,60 @@
 import pandas as pd
 
+def one_hot_encode_all(data, categorical_columns):
+
+    encoded_data = data.copy()
+
+    for column in categorical_columns:
+
+        categories = encoded_data[column].dropna().unique()
+
+        for category in categories:
+
+            new_column = (
+                column + "_" + str(category)
+            )
+
+            encoded_data[new_column] = (
+                encoded_data[column] == category
+            ).astype(int)
+
+        encoded_data.drop(
+            columns=[column],
+            inplace=True
+        )
+
+    return encoded_data
+
+
 file = "Lab Session Data.xlsx"
 sheet = "marketing_campaign"
 
 df = pd.read_excel(file, sheet_name=sheet)
 
-# Label Encoding Function
-def my_label_encoder(series):
-    unique_values = sorted(series.dropna().unique())
-
-    mapping = {}
-    for i, value in enumerate(unique_values):
-        mapping[value] = i
-
-    encoded = series.map(mapping)
-
-    return encoded, mapping
-
-
-# One Hot Encoding Function
-def my_one_hot_encoder(series):
-
-    unique_values = sorted(series.dropna().unique())
-
-    encoded_df = pd.DataFrame()
-
-    for value in unique_values:
-        encoded_df[f"{series.name}_{value}"] = (series == value).astype(int)
-
-    return encoded_df
-
-
-categorical_columns = df.select_dtypes(include=["object"]).columns
+categorical_columns = df.select_dtypes(
+    include=["object"]
+).columns.tolist()
 
 print("Categorical Columns:")
 print(categorical_columns)
 
-# Label Encoding
-label_df = df.copy()
+encoded_df = one_hot_encode_all(
+    df,
+    categorical_columns
+)
 
-for col in categorical_columns:
-    label_df[col], mapping = my_label_encoder(label_df[col])
-    print(f"\nMapping for {col}")
-    print(mapping)
+print("\nOriginal Shape:")
+print(df.shape)
 
-print("\nShape After Label Encoding:")
-print(label_df.shape)
+print("\nEncoded Shape:")
+print(encoded_df.shape)
 
-# One Hot Encoding
-onehot_df = df.copy()
+print(
+    "\nOriginal Number of Features:",
+    df.shape[1]
+)
 
-for col in categorical_columns:
-
-    encoded = my_one_hot_encoder(onehot_df[col])
-
-    onehot_df = onehot_df.drop(col, axis=1)
-
-    onehot_df = pd.concat([onehot_df, encoded], axis=1)
-
-print("\nShape After One Hot Encoding:")
-print(onehot_df.shape)
+print(
+    "Encoded Number of Features:",
+    encoded_df.shape[1]
+)

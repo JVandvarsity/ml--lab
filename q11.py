@@ -1,75 +1,184 @@
-import pandas as pd
 import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+def euclidean_distance(A, B):
+
+    return np.sqrt(
+        np.sum((A - B) ** 2)
+    )
+
+
+def assign_clusters(data, centroids):
+
+    labels = []
+
+    for point in data:
+
+        distances = []
+
+        for centroid in centroids:
+
+            distance = euclidean_distance(
+                point,
+                centroid
+            )
+
+            distances.append(distance)
+
+        nearest_cluster = np.argmin(
+            distances
+        )
+
+        labels.append(
+            nearest_cluster
+        )
+
+    return np.array(labels)
+
+
+def update_centroids(data, labels, k):
+
+    centroids = []
+
+    for cluster in range(k):
+
+        cluster_points = data[
+            labels == cluster
+        ]
+
+        if len(cluster_points) > 0:
+
+            centroid = np.mean(
+                cluster_points,
+                axis=0
+            )
+
+        else:
+
+            centroid = data[
+                np.random.randint(
+                    0,
+                    len(data)
+                )
+            ]
+
+        centroids.append(
+            centroid
+        )
+
+    return np.array(centroids)
+
+
+def k_means(
+    data,
+    k,
+    max_iterations=100
+):
+
+    indices = np.random.choice(
+        len(data),
+        k,
+        replace=False
+    )
+
+    centroids = data[
+        indices
+    ].copy()
+
+
+    for iteration in range(
+        max_iterations
+    ):
+
+        labels = assign_clusters(
+            data,
+            centroids
+        )
+
+        new_centroids = update_centroids(
+            data,
+            labels,
+            k
+        )
+
+        if np.allclose(
+            centroids,
+            new_centroids
+        ):
+
+            break
+
+
+        centroids = new_centroids
+
+
+    return labels, centroids
 
 file = "Lab Session Data.xlsx"
 sheet = "marketing_campaign"
 
 df = pd.read_excel(file, sheet_name=sheet)
 
-for col in df.select_dtypes(include=["object"]).columns:
-    df[col] = pd.factorize(df[col])[0]
 
-data = df.select_dtypes(include=np.number).values
+numeric_df = df.select_dtypes(
+    include=np.number
+).dropna()
 
-def euclidean_distance(a, b):
-    total = 0
+data = numeric_df.values
 
-    for i in range(len(a)):
-        total += (a[i] - b[i]) ** 2
+mean = np.mean(
+    data,
+    axis=0
+)
 
-    return total ** 0.5
+std = np.std(
+    data,
+    axis=0
+)
 
+std[std == 0] = 1
 
-# ---------- K-Means ----------
-def my_kmeans(data, k, max_iterations=100):
+data = (
+    data - mean
+) / std
 
-    centroids = data[:k].copy()
-
-    for _ in range(max_iterations):
-
-        clusters = []
-
-        # Assign each point
-        for point in data:
-
-            distances = []
-
-            for centroid in centroids:
-                distances.append(euclidean_distance(point, centroid))
-
-            clusters.append(np.argmin(distances))
-
-        clusters = np.array(clusters)
-
-        new_centroids = []
-
-        # Update centroids
-        for i in range(k):
-
-            cluster_points = data[clusters == i]
-
-            if len(cluster_points) > 0:
-                new_centroids.append(cluster_points.mean(axis=0))
-            else:
-                new_centroids.append(centroids[i])
-
-        new_centroids = np.array(new_centroids)
-
-        if np.allclose(centroids, new_centroids):
-            break
-
-        centroids = new_centroids
-
-    return clusters, centroids
-
-
-# Run K-Means
 k = 3
 
-clusters, centroids = my_kmeans(data, k)
+labels, centroids = k_means(
+    data,
+    k
+)
 
 print("Cluster Labels:")
-print(clusters)
+print(labels)
 
-print("\nFinal Centroids:")
+print("\nCentroids:")
 print(centroids)
+
+plt.scatter(
+    data[:, 0],
+    data[:, 1],
+    c=labels
+)
+
+plt.scatter(
+    centroids[:, 0],
+    centroids[:, 1],
+    marker="X",
+    s=200
+)
+
+plt.xlabel(
+    numeric_df.columns[0]
+)
+
+plt.ylabel(
+    numeric_df.columns[1]
+)
+
+plt.title(
+    "K-Means Clustering"
+)
+
+plt.show()

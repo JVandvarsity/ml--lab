@@ -1,47 +1,69 @@
-import pandas as pd
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
+
+
+def calculate_mean(data):
+
+    return np.sum(data) / len(data)
+
+
+def calculate_variance(data):
+
+    mean = calculate_mean(data)
+
+    return np.sum(
+        (data - mean) ** 2
+    ) / len(data)
+
 
 file = "Lab Session Data.xlsx"
 sheet = "marketing_campaign"
 
 df = pd.read_excel(file, sheet_name=sheet)
 
-for col in df.select_dtypes(include=["object"]).columns:
-    df[col] = pd.factorize(df[col])[0]
+numeric_df = df.select_dtypes(
+    include=np.number
+).dropna()
 
-data = df.select_dtypes(include=np.number)
+feature = numeric_df.columns[0]
 
-print("Available Features:")
-print(data.columns.tolist())
+data = numeric_df[feature].values
 
-feature = data.columns[0]
+counts, bins = np.histogram(
+    data,
+    bins=10
+)
 
-values = data[feature]
-
-print("\nSelected Feature:", feature)
-
-hist, bins = np.histogram(values, bins=10)
+print("Feature:", feature)
 
 print("\nHistogram Counts:")
-print(hist)
+print(counts)
 
 print("\nBin Edges:")
 print(bins)
 
-plt.figure(figsize=(8,5))
+print(
+    "\nMean:",
+    calculate_mean(data)
+)
 
-plt.hist(values, bins=10, edgecolor="black")
+print(
+    "Variance:",
+    calculate_variance(data)
+)
 
-plt.title(f"Histogram of {feature}")
+plt.hist(
+    data,
+    bins=10,
+    edgecolor="black"
+)
 
 plt.xlabel(feature)
-
 plt.ylabel("Frequency")
 
-plt.grid(True)
+plt.title(
+    "Histogram of " + feature
+)
 
 plt.show()
-
-print("Mean     :", np.mean(values))
-print("Variance :", np.var(values))
